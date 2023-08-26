@@ -34,6 +34,10 @@ PIECES = {
     'p': load_piece_image(5, 1),
 }
 
+dragging = False
+dragged_piece = None
+dragged_from_square = None
+
 def draw_board(board):
     for row in range(8):
         for col in range(8):
@@ -45,15 +49,55 @@ def draw_board(board):
                 piece_image = PIECES[str(piece)]
                 WINDOW.blit(piece_image, (row * SQUARE_SIZE, col * SQUARE_SIZE))
 
+    if dragging and dragged_piece:
+        x, y = pygame.mouse.get_pos()
+        WINDOW.blit(PIECES[dragged_piece], (x - SQUARE_SIZE // 2, y - SQUARE_SIZE // 2))
+
     pygame.display.flip()
 
-def main_loop():
-    board = chess.Board()
+def get_square_from_coords(x, y):
+    return x // SQUARE_SIZE, y // SQUARE_SIZE
+
+def main_loop(board, handle_move):
+    global dragging, dragged_piece, dragged_from_square
     running = True
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+                row, col = get_square_from_coords(x, y)
+                square = chess.square(row, col)
+                piece = board.piece_at(square)
+                if piece and piece.color == chess.WHITE:  # Si es una pieza blanca
+                    dragging = True
+                    dragged_piece = str(piece)
+                    dragged_from_square = square
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                x, y = pygame.mouse.get_pos()
+                row, col = get_square_from_coords(x, y)
+                to_square = chess.square(row, col)
+                if dragging and dragged_from_square is not None:
+                    move = chess.Move(dragged_from_square, to_square)
+                    promo_move = None
+                    if board.piece_at(dragged_from_square).symbol() == 'P' and to_square in chess.SQUARES[56:64]:
+                        promo_move = chess.Move(dragged_from_square, to_square, promotion=chess.QUEEN)
+                    elif board.piece_at(dragged_from_square).symbol() == 'p' and to_square in chess.SQUARES[0:8]:
+                        promo_move = chess.Move(dragged_from_square, to_square, promotion=chess.QUEEN)
+
+                    if promo_move and promo_move in board.legal_moves:
+                        handle_move(promo_move)
+                    elif move in board.legal_moves:
+                        handle_move(move)
+
+                dragging = False
+                dragged_piece = None
+                dragged_from_square = None
+
 
         draw_board(board)
 

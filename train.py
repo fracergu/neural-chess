@@ -35,6 +35,11 @@ for _ in range(args.iterations):
             best_move = np.random.choice(legal_moves)
         else:
             best_move = sorted_moves[0][0]
+            if game.board.piece_at(best_move.from_square).symbol() == 'P' and best_move.to_square in chess.SQUARES[56:64]:
+                best_move = chess.Move(best_move.from_square, best_move.to_square, promotion=chess.QUEEN)
+            elif game.board.piece_at(best_move.from_square).symbol() == 'p' and best_move.to_square in chess.SQUARES[0:8]:
+                best_move = chess.Move(best_move.from_square, best_move.to_square, promotion=chess.QUEEN)
+
 
         game.move_piece(best_move)
 

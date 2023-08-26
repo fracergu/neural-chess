@@ -8,6 +8,11 @@ class ChessGame:
         self.board = chess.Board()
 
     def move_piece(self, move):
+        if self.board.is_pseudo_legal(move):
+            if self.board.piece_at(move.from_square).symbol() == 'P' and move.to_square in chess.SQUARES[56:64]:
+                move = chess.Move(move.from_square, move.to_square, promotion=chess.QUEEN)  # Promote to Queen
+            elif self.board.piece_at(move.from_square).symbol() == 'p' and move.to_square in chess.SQUARES[0:8]:
+                move = chess.Move(move.from_square, move.to_square, promotion=chess.QUEEN)  # Promote to Queen
         self.board.push(move)
 
     def get_board(self):
